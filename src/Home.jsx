@@ -1,8 +1,20 @@
-import { Button, Flex, List, Pagination } from "antd";
-import { blogList } from "./db/blog";
+import { Button, Flex, List } from "antd";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [blogList, setBlogList] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/blog", {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setBlogList(data));
+  }, []);
   return (
     <Flex vertical style={{ height: "100%" }}>
       <Link to="/write" style={{ alignSelf: "flex-end" }}>
@@ -22,11 +34,6 @@ export default function Home() {
             </Link>
           </List.Item>
         )}
-      />
-      <Pagination
-        defaultCurrent={1}
-        total={blogList.length % 10}
-        style={{ alignSelf: "center", marginTop: "auto" }}
       />
     </Flex>
   );

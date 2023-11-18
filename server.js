@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
-import express from "express";
+import express, { Router } from "express";
+import { model } from "./src/db/blog.js";
 
 // Constants
 const isProduction = process.env.NODE_ENV === "production";
@@ -34,6 +35,33 @@ if (!isProduction) {
   app.use(base, sirv("./dist/client", { extensions: [] }));
 }
 
+const router = Router();
+router.post("/blog", (req, res) => {
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk.toString();
+  });
+
+  req.on("end", () => {
+    model.addNewBlog(JSON.parse(body));
+    model.init(model.blogList);
+    res.status(200).send(model.blogList);
+  });
+});
+
+router.get("/blog", (req, res) => {
+  res.status(200).send(model.blogList);
+});
+
+router.get("/blog/:id", (req, res) => {
+  const { id: postId } = req.params;
+  const foundPost = model.blogList.find((post) => post.id === postId);
+  res.status(200).send(foundPost);
+});
+
+app.use("/api", router);
+
 // Serve HTML
 app.use("*", async (req, res) => {
   try {
@@ -50,12 +78,17 @@ app.use("*", async (req, res) => {
       template = templateHtml;
       render = (await import("./dist/server/entry-server.js")).render;
     }
-
     const rendered = await render(url, ssrManifest);
 
     const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "");
+      .replace(`<!--app-head-->`, rendered.head.flat() ?? "")
+      .replace(`<!--app-html-->`, rendered.html ?? "")
+      .replace(
+        "<!--init-data-->",
+        `<script type="module">window.__INITIAL_MODEL__ = ${JSON.stringify(
+          model.blogList
+        )}</script>`
+      );
 
     res.status(200).set({ "Content-Type": "text/html" }).end(html);
   } catch (e) {

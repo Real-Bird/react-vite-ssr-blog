@@ -1,12 +1,12 @@
 import { Button, Flex, Form, Input, Typography } from "antd";
-import { blogList } from "./db/blog";
+import { model } from "./db/blog";
 import { useNavigate } from "react-router-dom";
 const { TextArea } = Input;
 
 export default function Write() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const { writer, content, mainTitle, subTitle } = form.getFieldsValue();
     const newData = {
       id: crypto.randomUUID(),
@@ -16,7 +16,13 @@ export default function Write() {
       mainTitle,
       subTitle,
     };
-    blogList.push(newData);
+    await fetch("/api/blog", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newData),
+    });
     navigate("/", { replace: true });
   };
   return (
