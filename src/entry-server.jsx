@@ -16,8 +16,9 @@ export function render(url) {
     </React.StrictMode>
   );
   const styleText = extractStyle(cache);
+  const meta = `<meta name="author" content="real-bird" />`;
   return {
     html,
-    head: [styleText],
+    head: [meta, styleText],
   };
 }

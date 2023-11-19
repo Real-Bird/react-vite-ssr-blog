@@ -1,5 +1,4 @@
 import { Button, Flex, Form, Input, Typography } from "antd";
-import { model } from "./db/blog";
 import { useNavigate } from "react-router-dom";
 const { TextArea } = Input;
 
